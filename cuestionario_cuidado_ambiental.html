@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario Educativo para Niños</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh); }
+            100% { transform: translateY(-10vh); }
+        }
+        .bounce { animation: bounce 0.5s ease infinite; }
+        .hidden { display: none; }
+        .balloon {
+            position: absolute;
+            width: 40px;
+            animation: float 4s ease-in infinite;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: float 3s ease-in infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-200 via-green-100 to-yellow-200 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-6 relative">
+        <!-- Pantalla de inicio -->
+        <div id="startScreen">
+            <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">
+                <i class="fas fa-graduation-cap mr-2"></i>
+                ¡Cuestionario Educativo!
+            </h1>
+            <div class="space-y-4">
+                <input id="childName" type="text" placeholder="¿Cuál es tu nombre?" 
+                    class="w-full p-3 border-2 border-blue-300 rounded-lg focus:outline-none focus:border-blue-500">
+                <select id="topicSelect" 
+                    class="w-full p-3 border-2 border-green-300 rounded-lg focus:outline-none focus:border-green-500">
+                    <option value="">Elige un tema</option>
+                    <option value="contaminacion">Contaminación ambiental</option>
+                    <option value="agua">Cuidado del agua</option>
+                    <option value="reciclaje">Reciclaje</option>
+                </select>
+                <button id="startButton" 
+                    class="w-full bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-3 rounded-lg transition duration-300">
+                    ¡Comenzar!
+                </button>
+            </div>
+        </div>
+
+        <!-- Pantalla del cuestionario -->
+        <div id="quizScreen" class="hidden">
+            <h2 id="questionTitle" class="text-2xl font-bold text-purple-600 mb-4"></h2>
+            <div id="options" class="space-y-3"></div>
+            <p class="text-gray-600 mt-4">Pregunta <span id="questionNumber"></span> de 5</p>
+        </div>
+
+        <!-- Pantalla de resultados -->
+        <div id="resultScreen" class="hidden">
+            <h2 class="text-3xl font-bold text-center text-green-600 mb-6">
+                <i class="fas fa-trophy mr-2"></i>
+                ¡Resultados!
+            </h2>
+            <p id="resultMessage" class="text-xl text-center mb-4"></p>
+            <div id="celebration" class="absolute inset-0 pointer-events-none"></div>
+            <button id="restartButton" 
+                class="w-full bg-blue-400 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition duration-300 relative z-10">
+                Jugar de nuevo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = {
+            contaminacion: [
+                { q: "🌫️ ¿Qué causa la contaminación del aire?", 
+                  options: ["Plantar árboles", "Fábricas con humo", "Reciclar"], 
+                  correct: 1 },
+                { q: "🚲 ¿Qué podemos hacer para reducir la contaminación?", 
+                  options: ["Tirar basura", "Usar más el carro", "Caminar o usar bicicleta"], 
+                  correct: 2 },
+                { q: "🏞️ ¿Qué contamina los ríos?", 
+                  options: ["Agua limpia", "Basura y químicos", "Pescar"], 
+                  correct: 1 },
+                { q: "🌍 ¿Qué es la contaminación ambiental?", 
+                  options: ["Cuidar la naturaleza", "Ensuciar el planeta", "Plantar flores"], 
+                  correct: 1 },
+                { q: "🐟 ¿Qué animal sufre por la contaminación?", 
+                  options: ["Peces en agua sucia", "Perros en casa", "Gatos jugando"], 
+                  correct: 0 }
+            ],
+            agua: [
+                { q: "💧 ¿Cómo podemos cuidar el agua?", 
+                  options: ["Dejar la llave abierta", "Cerrar bien la llave", "Tirar agua"], 
+                  correct: 1 },
+                { q: "🚿 ¿Para qué necesitamos el agua limpia?", 
+                  options: ["Jugar con lodo", "Tomar y bañarnos", "Ensuciar"], 
+                  correct: 1 },
+                { q: "🏜️ ¿Qué pasa si no cuidamos el agua?", 
+                  options: ["Se acaba", "Se vuelve chocolate", "Llueve más"], 
+                  correct: 0 },
+                { q: "☔ ¿De dónde viene el agua que tomamos?", 
+                  options: ["Ríos y lluvia", "Fábrica de refrescos", "Nubes de azúcar"], 
+                  correct: 0 },
+                { q: "🛁 ¿Qué usa mucha agua?", 
+                  options: ["Cepillarse rápido", "Dejar la regadera abierta", "Tomar un vaso"], 
+                  correct: 1 }
+            ],
+            reciclaje: [
+                { q: "♻️ ¿Qué significa reciclar?", 
+                  options: ["Tirar todo", "Reusar cosas", "Comprar más"], 
+                  correct: 1 },
+                { q: "📄 ¿Qué podemos reciclar?", 
+                  options: ["Papel y plástico", "Comida podrida", "Agua sucia"], 
+                  correct: 0 },
+                { q: "🗑️ ¿Dónde ponemos el reciclaje?", 
+                  options: ["En el río", "En botes especiales", "En el suelo"], 
+                  correct: 1 },
+                { q: "🌎 ¿Por qué reciclamos?", 
+                  options: ["Para ensuciar", "Para cuidar el planeta", "Para gastar"], 
+                  correct: 1 },
+                { q: "📘 ¿Qué color es para el reciclaje de papel?", 
+                  options: ["Verde", "Azul", "Rojo"], 
+                  correct: 1 }
+            ]
+        };
+
+        let currentQuestions = [];
+        let currentQuestion = 0;
+        let score = 0;
+        let childName = "";
+
+        const startScreen = document.getElementById('startScreen');
+        const quizScreen = document.getElementById('quizScreen');
+        const resultScreen = document.getElementById('resultScreen');
+        const startButton = document.getElementById('startButton');
+        const restartButton = document.getElementById('restartButton');
+
+        startButton.addEventListener('click', startQuiz);
+        restartButton.addEventListener('click', () => {
+            startScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            document.getElementById('celebration').innerHTML = '';
+            score = 0;
+        });
+
+        function startQuiz() {
+						playSound('buzz');
+            childName = document.getElementById('childName').value.trim();
+            const topic = document.getElementById('topicSelect').value;
+            
+            if (!childName || !topic) {
+                alert('¡Por favor escribe tu nombre y elige un tema!');
+                return;
+            }
+
+            currentQuestions = shuffleArray([...questions[topic]]).slice(0, 5);
+            currentQuestion = 0;
+            score = 0;
+            startScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = currentQuestions[currentQuestion];
+            document.getElementById('questionTitle').textContent = q.q;
+            document.getElementById('questionNumber').textContent = currentQuestion + 1;
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            q.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'w-full p-3 bg-blue-100 hover:bg-blue-200 rounded-lg text-left transition duration-300';
+                button.textContent = option;
+                button.addEventListener('click', () => checkAnswer(index));
+                optionsDiv.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selected) {
+            const correct = currentQuestions[currentQuestion].correct;
+            if (selected === correct) {
+                score += 20;
+                playSound('correct');
+            } else {
+                playSound('wrong');
+            }
+
+            currentQuestion++;
+            if (currentQuestion < 5) {
+                showQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            const message = document.getElementById('resultMessage');
+            
+            let feedback = `${childName}, obtuviste ${score} puntos! `;
+            if (score === 100) feedback += "¡Perfecto! Eres un experto 🌟";
+            else if (score >= 60) feedback += "¡Muy bien! Sigue aprendiendo 😊";
+            else feedback += "¡Buen intento! Puedes mejorar 💪";
+            
+            message.textContent = feedback;
+            showCelebration();
+        }
+
+        function showCelebration() {
+            const celebration = document.getElementById('celebration');
+            // Globos
+            for (let i = 0; i < 5; i++) {
+                const balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                balloon.textContent = '🎈';
+                balloon.style.left = `${Math.random() * 100}%`;
+                balloon.style.animationDelay = `${Math.random()}s`;
+                celebration.appendChild(balloon);
+            }
+            // Confeti
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                confetti.style.left = `${Math.random() * 100}%`;
+                confetti.style.animationDelay = `${Math.random()}s`;
+                celebration.appendChild(confetti);
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function playSound(type) {
+            let audioSrc;
+            switch(type) {
+                case 'correct':
+                    audioSrc = 'https://www.myinstants.com/media/sounds/correct.mp3';
+                    break;
+                case 'wrong':
+                    audioSrc = 'https://www.myinstants.com/media/sounds/incorrect.swf.mp3';
+                    break;
+                case 'buzz':
+                    audioSrc = 'https://www.myinstants.com/media/sounds/to-infinity-and-beyond.mp3';
+                    break;
+            }
+            const audio = new Audio(audioSrc);
+            audio.play();
+        }
+    </script>
+</body>
+</html>
